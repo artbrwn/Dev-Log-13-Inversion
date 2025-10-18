@@ -1,7 +1,8 @@
-.DS_Store/
+.DS_Store
 .vscode/
 __pycache__/
 venv/
 .env
 config.py
 sandbox.py
+trading.sqlite3
