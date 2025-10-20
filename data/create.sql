@@ -1,4 +1,4 @@
-CREATE TABLE "transaction" (
+CREATE TABLE "transactions" (
 	"id"	INTEGER NOT NULL,
 	"date"	TEXT NOT NULL,
 	"time"	TEXT NOT NULL,
