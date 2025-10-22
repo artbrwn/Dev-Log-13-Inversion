@@ -3,7 +3,7 @@ import sqlite3
 import config
 
 class TransactionError(Exception):
-    """Excepción personalizada para errores de operaciones de inversión."""
+    """Exception for transaction operations"""
     pass
 
 class Transaction:
