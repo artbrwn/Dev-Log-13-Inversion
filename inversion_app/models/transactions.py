@@ -1,46 +1,47 @@
 from inversion_app.models.connection import Connection
 import sqlite3
+import config
 
-def get_all_transactions() -> list[dict]:
-    try:
-        query = "SELECT * FROM transactions"
-        conn = Connection(query)
-        result = conn.response.fetchall()
-        transaction_list = [dict(row) for row in result]
-        conn.connection.close()
-        return transaction_list
-    except sqlite3.Error as e:
-        return f"No se han podido cargar los movimientos: {e}"
+class TransactionError(Exception):
+    """Excepción personalizada para errores de operaciones de inversión."""
+    pass
 
-def insert_transaction(data_form):
-    try:
-        query = "INSERT INTO transactions (data, time, currency_from, amount_from, currency_to, amount_to) values (?, ?, ?, ?, ?, ?)"
-        conn = Connection(query, data_form)
-        conn.connection.commit()
-        conn.connection.close()
+class Transaction:
+    def __init__(self, db_path=None):
+        self.db_path = config.ORIGIN_DATA
 
-    except sqlite3.Error as e:
-        return f"No se ha podido guardar la transacción: {e}"
-    
-def get_owned_currencies():
-    """
-    Returns a dictionary with all coins with a positive balance in database as key and it's balance as value.
-    """
-    try:
-        query = "SELECT currency_from, amount_from, currency_to, amount_to FROM transactions"
-        conn = Connection(query)
-        rows = conn.response.fetchall()
-        conn.connection.close()
+    def get_all(self):
+        try:
+            query = "SELECT * FROM transactions"
+            conn = Connection(query)
+            result = conn.response.fetchall()
+            conn.connection.close()
+            return [dict(row) for row in result]
+        except sqlite3.Error as e:
+            raise TransactionError(f"Unable to get transactions: {e}")
 
-        balances = {}
+    def insert(self, data_form):
+        try:
+            query = "INSERT INTO transactions (date, time, currency_from, amount_from, currency_to, amount_to) VALUES (?, ?, ?, ?, ?, ?)"
+            conn = Connection(query, data_form)
+            conn.connection.commit()
+            conn.connection.close()
+        except sqlite3.Error as e:
+            raise TransactionError(f"Unable to save the transaction: {e}")
 
-        for row in rows:
-            balances[row["currency_from"]] = balances.get(row["currency_from"], 0) - row["amount_from"]
-            balances[row["currency_to"]] = balances.get(row["currency_to"], 0) + row["amount_to"]
+    def get_owned_currencies(self):
+        try:
+            query = "SELECT currency_from, amount_from, currency_to, amount_to FROM transactions"
+            conn = Connection(query)
+            rows = conn.response.fetchall()
+            conn.connection.close()
 
-        owned_currencies = {currency: balance for currency, balance in balances.items() if balance > 0}
+            balances = {}
+            for row in rows:
+                balances[row["currency_from"]] = balances.get(row["currency_from"], 0) - row["amount_from"]
+                balances[row["currency_to"]] = balances.get(row["currency_to"], 0) + row["amount_to"]
 
-        return owned_currencies
+            return {currency: balance for currency, balance in balances.items() if balance > 0}
 
-    except sqlite3.Error as e:
-        return f"No se ha podido obtener el balance: {e}"
+        except sqlite3.Error as e:
+            raise TransactionError(f"Unable to get the currencies: {e}")
