@@ -1,6 +1,10 @@
 import requests
 from config import API_KEY
 
+class ApiCryptoError(Exception):
+    """Exception for cryptocurrencies API queries errors"""
+    pass
+
 class ApiCrypto:
     BASE_URL = "https://pro-api.coinmarketcap.com/"
     HEADERS = {"X-CMC_PRO_API_KEY": API_KEY}
@@ -14,20 +18,27 @@ class ApiCrypto:
 
     def get_conversion_price(self, data_form):
         """
-        Recieves a data_form with currency_from, amount_from, currency_to and returns conversion price. 
+        Receives a data_form with currency_from, amount_from, currency_to and returns conversion price. 
+        Raises ApiCryptoError if anything goes wrong.
         """
         url = self.BASE_URL + "v2/tools/price-conversion"
-        params = {
-            "amount": data_form.amount_from,
-            "id": data_form.currency_from_id,
-            "convert_id": data_form.currency_to_id
-        }
-        response = requests.get(url, params=params)
-        if not response["status"]["error_code"]:
-            conversion_price = response["data"]["quote"][str(data_form.currency_to_id)]
 
-        else:
-            return response["status"]["error_message"]
-        
+        try:
+            params = {
+                "amount": data_form.amount_from,
+                "id": data_form.currency_from_id,
+                "convert_id": data_form.currency_to_id
+            }
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            conversion_price = data["data"]["quote"][str(data_form.currency_to_id)]
+            
+        except AttributeError as e:
+            raise ApiCryptoError(f"Invalid data_form: missing attribute {e}")
+        except (requests.RequestException, ValueError, KeyError) as e:
+            raise ApiCryptoError(f"API request/conversion failed: {e}")
+
         return conversion_price
+        
     
