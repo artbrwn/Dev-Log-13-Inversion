@@ -7,7 +7,7 @@ class TransactionError(Exception):
     pass
 
 class Transaction:
-    def __init__(self, db_path=None):
+    def __init__(self):
         self.db_path = config.ORIGIN_DATA
 
     def get_all(self):
@@ -45,3 +45,7 @@ class Transaction:
 
         except sqlite3.Error as e:
             raise TransactionError(f"Unable to get the currencies: {e}")
+
+if __name__ == "__main__":
+    transaccion = Transaction()
+    print(transaccion.get_all())
