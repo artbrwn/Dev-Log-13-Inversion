@@ -45,7 +45,3 @@ class Transaction:
 
         except sqlite3.Error as e:
             raise TransactionError(f"Unable to get the currencies: {e}")
-
-if __name__ == "__main__":
-    transaccion = Transaction()
-    print(transaccion.get_all())
