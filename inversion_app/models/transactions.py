@@ -30,6 +30,9 @@ class Transaction:
             raise TransactionError(f"Unable to save the transaction: {e}")
 
     def get_owned_currencies(self):
+        """
+        Returns a dictionary with the ID of the owned currencies as key and its balance as value.
+        """
         try:
             query = "SELECT currency_from, amount_from, currency_to, amount_to FROM transactions"
             conn = Connection(query)
@@ -41,7 +44,11 @@ class Transaction:
                 balances[row["currency_from"]] = balances.get(row["currency_from"], 0) - row["amount_from"]
                 balances[row["currency_to"]] = balances.get(row["currency_to"], 0) + row["amount_to"]
 
-            return {currency: balance for currency, balance in balances.items() if balance > 0}
+            # Euros always available
+            owned = {currency: balance for currency, balance in balances.items() if balance > 0}
+            owned[config.CURRENCIES["EUR"]] = float("inf")
+
+            return owned
 
         except sqlite3.Error as e:
             raise TransactionError(f"Unable to get the currencies: {e}")

@@ -26,7 +26,11 @@
             </div>
             <div class="col-md-6">
                 <label for="amount_to" class="form-label">Cantidad destino</label>
-                {{ form.amount_to(class="form-control", id="amount_to", readonly=True) }}
+                <input type="text" 
+                    class="form-control" 
+                    id="amount_to" 
+                    readonly 
+                    value="{{ calculated_amount or "" }}">
             </div>
         </div>
 

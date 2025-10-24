@@ -25,14 +25,14 @@ class ApiCrypto:
 
         try:
             params = {
-                "amount": data_form.amount_from,
-                "id": data_form.currency_from_id,
-                "convert_id": data_form.currency_to_id
+                "amount": data_form.amount_from.data,
+                "id": data_form.currency_from.data,
+                "convert_id": data_form.currency_to.data
             }
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, headers=self.HEADERS)
             response.raise_for_status()
             data = response.json()
-            conversion_price = data["data"]["quote"][str(data_form.currency_to_id)]
+            conversion_price = data["data"]["quote"][str(data_form.currency_to.data)]["price"]
             
         except AttributeError as e:
             raise ApiCryptoError(f"Invalid data_form: missing attribute {e}")
