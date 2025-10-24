@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container mt-4">
+    <h2 class="mb-4">Nueva transacción</h2>
+
+    <!-- Main form -->
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="currency_from" class="form-label">Moneda origen</label>
+                {{ form.currency_from(class="form-control", id="currency_from") }}
+            </div>
+            <div class="col-md-6">
+                <label for="currency_to" class="form-label">Moneda destino</label>
+                {{ form.currency_to(class="form-control", id="currency_to") }}
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="amount_from" class="form-label">Cantidad origen</label>
+                {{ form.amount_from(class="form-control", id="amount_from", placeholder="Ej. 1.0") }}
+            </div>
+            <div class="col-md-6">
+                <label for="amount_to" class="form-label">Cantidad destino</label>
+                {{ form.amount_to(class="form-control", id="amount_to", readonly=True) }}
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" name="action" value="calculate" class="btn btn-secondary">
+                Calcular
+            </button>
+            <button type="submit" name="action" value="save" class="btn btn-primary">
+                Guardar transacción
+            </button>
+        </div>
+    </form>
+
+    <!-- Feedback message -->
+    {% if message %}
+        <div class="alert alert-info mt-4">
+            {{ message }}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
