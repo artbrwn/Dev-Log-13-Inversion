@@ -6,16 +6,23 @@ from config import CURRENCIES
 from inversion_app.models.api_crypto import ApiCrypto, ApiCryptoError
 from datetime import datetime
 
+id_to_symbol = {v: k for k, v in CURRENCIES.items()}
+
 @app.route("/")
 def index():
-    return render_template("index.html")
+    user_transactions = Transaction()
+    all_transactions = user_transactions.get_all()
+    for transaction in all_transactions:
+        transaction['currency_from'] = id_to_symbol.get(transaction['currency_from'])
+        transaction['currency_to'] = id_to_symbol.get(transaction['currency_to'])
+
+    return render_template("index.html", transactions=all_transactions)
 
 @app.route("/purchase", methods=["GET", "POST"])
 def purchase():
     form = TradeForm()
     user_transactions = Transaction()  
     owned_currencies = user_transactions.get_owned_currencies()
-    id_to_symbol = {v: k for k, v in CURRENCIES.items()}
 
     form.currency_from.choices = [(currency_id, id_to_symbol[currency_id]) 
                               for currency_id in owned_currencies.keys()]
