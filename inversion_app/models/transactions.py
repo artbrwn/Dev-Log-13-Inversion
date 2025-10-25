@@ -12,7 +12,7 @@ class Transaction:
 
     def get_all(self):
         try:
-            query = "SELECT * FROM transactions"
+            query = "SELECT * FROM transactions ORDER BY date DESC, time DESC"
             conn = Connection(query)
             result = conn.response.fetchall()
             conn.connection.close()
