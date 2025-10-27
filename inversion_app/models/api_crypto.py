@@ -1,5 +1,6 @@
 import requests
 from config import API_KEY
+import time
 
 class ApiCryptoError(Exception):
     """Exception for cryptocurrencies API queries errors"""
@@ -16,7 +17,7 @@ class ApiCrypto:
         print(result)
     """
 
-    def get_conversion_price(self, data_form):
+    def get_conversion_price(self, amount_from, currency_from, currency_to):
         """
         Receives a data_form with currency_from, amount_from, currency_to and returns conversion price. 
         Raises ApiCryptoError if anything goes wrong.
@@ -25,14 +26,15 @@ class ApiCrypto:
 
         try:
             params = {
-                "amount": data_form.amount_from.data,
-                "id": data_form.currency_from.data,
-                "convert_id": data_form.currency_to.data
+                "amount": amount_from,
+                "id": currency_from,
+                "convert_id": currency_to
             }
             response = requests.get(url, params=params, headers=self.HEADERS)
             response.raise_for_status()
             data = response.json()
-            conversion_price = data["data"]["quote"][str(data_form.currency_to.data)]["price"]
+            conversion_price = data["data"]["quote"][str(currency_to)]["price"]
+            time.sleep(0.1)
             
         except AttributeError as e:
             raise ApiCryptoError(f"Invalid data_form: missing attribute {e}")

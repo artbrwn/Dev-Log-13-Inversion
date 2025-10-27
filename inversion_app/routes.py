@@ -44,7 +44,9 @@ def purchase():
                 if action == "calculate":
                     try:
                         api_connection = ApiCrypto()
-                        conversion_value = api_connection.get_conversion_price(form)
+                        conversion_value = api_connection.get_conversion_price(form.amount_from.data, 
+                                                                               form.currency_from.data,
+                                                                               form.currency_to.data)
                         
                         # Save result in session to proof if user wants to save
                         session['last_calculation'] = {
@@ -108,3 +110,20 @@ def purchase():
                          message=message,
                          calculated_amount=conversion_value)
 
+@app.route("/status")
+def status():
+    message = None
+    investment_status = None
+    try:
+        user_transactions = Transaction()
+        invested = user_transactions.get_total_investment()
+        recovered = user_transactions.get_total_recovered()
+        purchase_value = invested - recovered
+        actual_value = user_transactions.calculate_actual_value()
+        investment_status = {"invested": invested,
+                            "recovered": recovered,
+                            "purchase_value": purchase_value,
+                            "actual_value": actual_value}
+    except TransactionError as e:
+        message = f"Error en la base de datos: {e}"
+    return render_template("status.html", status_data=investment_status, message=message)
