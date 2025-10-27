@@ -10,93 +10,101 @@ id_to_symbol = {v: k for k, v in CURRENCIES.items()}
 
 @app.route("/")
 def index():
-    user_transactions = Transaction()
-    all_transactions = user_transactions.get_all()
-    for transaction in all_transactions:
-        transaction['currency_from'] = id_to_symbol.get(transaction['currency_from'])
-        transaction['currency_to'] = id_to_symbol.get(transaction['currency_to'])
+    message = None
+    try:
+        user_transactions = Transaction()
+        all_transactions = user_transactions.get_all()
+        for transaction in all_transactions:
+            transaction['currency_from'] = id_to_symbol.get(transaction['currency_from'])
+            transaction['currency_to'] = id_to_symbol.get(transaction['currency_to'])
+    except TransactionError as e:
+        all_transactions = None
+        message = f"No se ha podido conectar con la base de datos: {e}"
 
-    return render_template("index.html", transactions=all_transactions)
+    return render_template("index.html", transactions=all_transactions, message=message)
 
 @app.route("/purchase", methods=["GET", "POST"])
 def purchase():
-    form = TradeForm()
-    user_transactions = Transaction()  
-    owned_currencies = user_transactions.get_owned_currencies()
-
-    form.currency_from.choices = [(currency_id, id_to_symbol[currency_id]) 
-                              for currency_id in owned_currencies.keys()]
-    
-    form.currency_to.choices = [(id, symbol) for symbol, id in CURRENCIES.items()]
-
     message = None
     conversion_value = None
+    form = TradeForm()
+    try:
+        user_transactions = Transaction()  
+        owned_currencies = user_transactions.get_owned_currencies()
 
-    if request.method == "POST":
-        if form.validate_on_submit():  
-            action = request.form.get("action")
-            
-            if action == "calculate":
-                try:
-                    api_connection = ApiCrypto()
-                    conversion_value = api_connection.get_conversion_price(form)
-                    
-                    # Save result in session to proof if user wants to save
-                    session['last_calculation'] = {
-                        'currency_from': form.currency_from.data,
-                        'currency_to': form.currency_to.data,
-                        'amount_from': float(form.amount_from.data),
-                        'amount_to': float(conversion_value)
-                    }
-                    message = "Cálculo realizado"
-                except ApiCryptoError as e:
-                    message = f"Error al obtener información de criptomonedas: {str(e)}"
-                    
+        form.currency_from.choices = [(currency_id, id_to_symbol[currency_id]) 
+                                for currency_id in owned_currencies.keys()]
+        
+        form.currency_to.choices = [(id, symbol) for symbol, id in CURRENCIES.items()]
 
-            elif action == "save":
-
-                last_calc = session.get('last_calculation')
+        if request.method == "POST":
+            if form.validate_on_submit():  
+                action = request.form.get("action")
                 
-                if not last_calc:
-                    message = "Error: Debes calcular antes de guardar"
+                if action == "calculate":
+                    try:
+                        api_connection = ApiCrypto()
+                        conversion_value = api_connection.get_conversion_price(form)
+                        
+                        # Save result in session to proof if user wants to save
+                        session['last_calculation'] = {
+                            'currency_from': form.currency_from.data,
+                            'currency_to': form.currency_to.data,
+                            'amount_from': float(form.amount_from.data),
+                            'amount_to': float(conversion_value)
+                        }
+                        message = "Cálculo realizado"
+                    except ApiCryptoError as e:
+                        message = f"Error al obtener información de criptomonedas: {str(e)}"
+                        
 
-                elif (last_calc['currency_from'] != form.currency_from.data or
-                    last_calc['currency_to'] != form.currency_to.data or
-                    last_calc['amount_from'] != float(form.amount_from.data)):
+                elif action == "save":
 
-                    message = "Error: Los datos han sido modificados. Vuelve a calcular"
-
-                else:
-                    currency_from_id = int(form.currency_from.data)  # Convertir a int
-                    amount_from = float(form.amount_from.data)
+                    last_calc = session.get('last_calculation')
                     
-                    if amount_from > owned_currencies[currency_from_id]:
-                        balance = owned_currencies[currency_from_id]
-                        symbol = id_to_symbol[currency_from_id]
-                        message = f"Error: tan solo tienes {balance} de {symbol}"
+                    if not last_calc:
+                        message = "Error: Debes calcular antes de guardar"
+
+                    elif (last_calc['currency_from'] != form.currency_from.data or
+                        last_calc['currency_to'] != form.currency_to.data or
+                        last_calc['amount_from'] != float(form.amount_from.data)):
+
+                        message = "Error: Los datos han sido modificados. Vuelve a calcular"
+
                     else:
-                    
-                        now = datetime.now()
+                        currency_from_id = int(form.currency_from.data)  # Convertir a int
+                        amount_from = float(form.amount_from.data)
                         
-                        data_form = (
-                            now.strftime('%Y-%m-%d'),           
-                            now.strftime('%H:%M:%S'),           
-                            last_calc['currency_from'],         
-                            last_calc['amount_from'],           
-                            last_calc['currency_to'],           
-                            last_calc['amount_to']              
-                        )
+                        if amount_from > owned_currencies[currency_from_id]:
+                            balance = owned_currencies[currency_from_id]
+                            symbol = id_to_symbol[currency_from_id]
+                            message = f"Error: tan solo tienes {balance} de {symbol}"
+                        else:
                         
-                        try:
-                            user_transactions.insert(data_form)
-                            message = "Transacción guardada exitosamente"
-                        except TransactionError as e:
-                            message = f"Error al guardar: {str(e)}"
-                        
-                        # Remove session after saving
-                        session.pop('last_calculation', None)
+                            now = datetime.now()
+                            
+                            data_form = (
+                                now.strftime('%Y-%m-%d'),           
+                                now.strftime('%H:%M:%S'),           
+                                last_calc['currency_from'],         
+                                last_calc['amount_from'],           
+                                last_calc['currency_to'],           
+                                last_calc['amount_to']              
+                            )
+                            
+                            try:
+                                user_transactions.insert(data_form)
+                                message = "Transacción guardada exitosamente"
+                            except TransactionError as e:
+                                message = f"Error al guardar: {str(e)}"
+                            
+                            # Remove session after saving
+                            session.pop('last_calculation', None)
+    except TransactionError as e:
+        message = f"Error en la base de datos: {e}"
 
     return render_template("purchase.html", 
                          form=form, 
                          message=message,
                          calculated_amount=conversion_value)
+

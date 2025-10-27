@@ -65,4 +65,10 @@
     </a>
 </div>
 {% endif %}
+<!-- Feedback message -->
+    {% if message %}
+        <div class="alert alert-info mt-4">
+            {{ message }}
+        </div>
+    {% endif %}
 {% endblock %}
