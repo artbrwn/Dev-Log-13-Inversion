@@ -72,7 +72,7 @@ def purchase():
                         message = "Error: Los datos han sido modificados. Vuelve a calcular"
 
                     else:
-                        currency_from_id = int(form.currency_from.data)  # Convertir a int
+                        currency_from_id = int(form.currency_from.data)  
                         amount_from = float(form.amount_from.data)
                         
                         if amount_from > owned_currencies[currency_from_id]:
