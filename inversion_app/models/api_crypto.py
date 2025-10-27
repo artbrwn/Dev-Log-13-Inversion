@@ -35,7 +35,7 @@ class ApiCrypto:
             data = response.json()
             conversion_price = data["data"]["quote"][str(currency_to)]["price"]
             time.sleep(0.1)
-            
+
         except AttributeError as e:
             raise ApiCryptoError(f"Invalid data_form: missing attribute {e}")
         except (requests.RequestException, ValueError, KeyError) as e:

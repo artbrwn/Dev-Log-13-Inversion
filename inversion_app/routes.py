@@ -116,14 +116,17 @@ def status():
     investment_status = None
     try:
         user_transactions = Transaction()
-        invested = user_transactions.get_total_investment()
-        recovered = user_transactions.get_total_recovered()
-        purchase_value = invested - recovered
-        actual_value = user_transactions.calculate_actual_value()
-        investment_status = {"invested": invested,
-                            "recovered": recovered,
-                            "purchase_value": purchase_value,
-                            "actual_value": actual_value}
+        transactions = user_transactions.get_all()
+        if transactions:
+            invested = user_transactions.get_total_investment()
+            recovered = user_transactions.get_total_recovered()
+            purchase_value = invested - recovered
+            actual_value = user_transactions.calculate_actual_value()
+            investment_status = {"invested": invested,
+                                "recovered": recovered,
+                                "purchase_value": purchase_value,
+                                "actual_value": actual_value}
     except TransactionError as e:
         message = f"Error en la base de datos: {e}"
+
     return render_template("status.html", status_data=investment_status, message=message)
