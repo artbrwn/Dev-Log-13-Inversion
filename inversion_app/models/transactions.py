@@ -85,6 +85,9 @@ class Transaction:
             raise TransactionError(f"Unable to get recovered EUR in database: {e}")
         
     def calculate_actual_value(self) -> float:
+        """
+        Returns the sum of all owned currencies in EUR.
+        """
         actual_value = 0
         owned = self.get_owned_currencies()
         if not owned:
