@@ -8,9 +8,11 @@ class TransactionError(Exception):
     pass
 
 class Transaction:
-    def __init__(self):
+    def __init__(self, currencies):
         self.db_path = config.ORIGIN_DATA
-        self.eur_id = config.CURRENCIES["EUR"]
+        self.currencies = currencies
+        self.eur_id = self.currencies.get("EUR", 2790)
+
 
     def get_all(self):
         try:
@@ -48,7 +50,7 @@ class Transaction:
 
             # Euros always available
             owned = {currency: balance for currency, balance in balances.items() if balance > 0}
-            owned[config.CURRENCIES["EUR"]] = float("inf")
+            owned[self.currencies["EUR"]] = float("inf")
 
             return owned
 

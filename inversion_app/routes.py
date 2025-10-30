@@ -2,17 +2,30 @@ from inversion_app import app
 from flask import render_template, request, session
 from inversion_app.forms import TradeForm
 from inversion_app.models.transactions import Transaction, TransactionError
-from config import CURRENCIES
 from inversion_app.models.api_crypto import ApiCrypto, ApiCryptoError
 from datetime import datetime
-
+try:
+    from config import CURRENCIES
+except (ImportError, AttributeError):
+    CURRENCIES = {
+    "EUR": 2790,
+    "BTC": 1,
+    "ETH": 1027,
+    "USDT": 825,
+    "BNB": 1839,
+    "XRP": 52,
+    "USDC": 3408,
+    "SOL": 5426,
+    "TRON": 1958,
+    "DOGE": 74
+}
 id_to_symbol = {v: k for k, v in CURRENCIES.items()}
 
 @app.route("/")
 def index():
     message = None
     try:
-        user_transactions = Transaction()
+        user_transactions = Transaction(CURRENCIES)
         all_transactions = user_transactions.get_all()
         for transaction in all_transactions:
             transaction['currency_from'] = id_to_symbol.get(transaction['currency_from'])
@@ -29,7 +42,7 @@ def purchase():
     conversion_value = None
     form = TradeForm()
     try:
-        user_transactions = Transaction()  
+        user_transactions = Transaction(CURRENCIES)  
         owned_currencies = user_transactions.get_owned_currencies()
 
         form.currency_from.choices = [(currency_id, id_to_symbol[currency_id]) 
@@ -115,7 +128,7 @@ def status():
     message = None
     investment_status = None
     try:
-        user_transactions = Transaction()
+        user_transactions = Transaction(CURRENCIES)
         transactions = user_transactions.get_all()
         if transactions:
             invested = user_transactions.get_total_investment()
