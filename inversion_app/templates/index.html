@@ -28,11 +28,27 @@
                 <td>
                     <span class="badge bg-secondary">{{ transaction.currency_from }}</span>
                 </td>
-                <td class="text-end">{{ "%.8f" | format(transaction.amount_from) }}</td>
+                <td class="text-end">
+                    {% if transaction.amount_from >= 1 %}
+                        {{ "%.2f" | format(transaction.amount_from) }}
+                    {% elif transaction.amount_to >= 0.01 %}
+                        {{ "%.4f" | format(transaction.amount_from) }}
+                    {% else %}
+                        {{ "%.8f" | format(transaction.amount_from) }}
+                    {% endif %}
+                </td>
                 <td>
                     <span class="badge bg-secondary">{{ transaction.currency_to }}</span>
                 </td>
-                <td class="text-end">{{ "%.8f" | format(transaction.amount_to) }}</td>
+                <td class="text-end">
+                    {% if transaction.amount_to >= 1 %}
+                        {{ "%.2f" | format(transaction.amount_to) }}
+                    {% elif transaction.amount_to >= 0.01 %}
+                        {{ "%.4f" | format(transaction.amount_to) }}
+                    {% else %}
+                        {{ "%.8f" | format(transaction.amount_to) }}
+                    {% endif %}
+                </td>
                 <td>
                     {% if transaction.currency_from == 'EUR' %}
                         <span class="badge bg-success">
