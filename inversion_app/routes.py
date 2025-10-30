@@ -51,70 +51,73 @@ def purchase():
         form.currency_to.choices = [(id, symbol) for symbol, id in CURRENCIES.items()]
 
         if request.method == "POST":
-            if form.validate_on_submit():  
-                action = request.form.get("action")
-                
-                if action == "calculate":
-                    try:
-                        api_connection = ApiCrypto()
-                        conversion_value = api_connection.get_conversion_price(form.amount_from.data, 
-                                                                               form.currency_from.data,
-                                                                               form.currency_to.data)
-                        
-                        # Save result in session to proof if user wants to save
-                        session['last_calculation'] = {
-                            'currency_from': form.currency_from.data,
-                            'currency_to': form.currency_to.data,
-                            'amount_from': float(form.amount_from.data),
-                            'amount_to': float(conversion_value)
-                        }
-                        message = "Cálculo realizado"
-                    except ApiCryptoError as e:
-                        message = f"Error al obtener información de criptomonedas: {str(e)}"
-                        
-
-                elif action == "save":
-
-                    last_calc = session.get('last_calculation')
+            if form.validate_on_submit():
+                if form.currency_from.data == form.currency_to.data:
+                    message = "Error: La moneda de destino debe ser diferente a la moneda de origen."
+                else:
+                    action = request.form.get("action")
                     
-                    if not last_calc:
-                        message = "Error: Debes calcular antes de guardar"
+                    if action == "calculate":
+                        try:
+                            api_connection = ApiCrypto()
+                            conversion_value = api_connection.get_conversion_price(form.amount_from.data, 
+                                                                                form.currency_from.data,
+                                                                                form.currency_to.data)
+                            
+                            # Save result in session to proof in case user wants to save
+                            session['last_calculation'] = {
+                                'currency_from': form.currency_from.data,
+                                'currency_to': form.currency_to.data,
+                                'amount_from': float(form.amount_from.data),
+                                'amount_to': float(conversion_value)
+                            }
+                            message = "Cálculo realizado"
+                        except ApiCryptoError as e:
+                            message = f"Error al obtener información de criptomonedas: {str(e)}"
+                            
 
-                    elif (last_calc['currency_from'] != form.currency_from.data or
-                        last_calc['currency_to'] != form.currency_to.data or
-                        last_calc['amount_from'] != float(form.amount_from.data)):
+                    elif action == "save":
 
-                        message = "Error: Los datos han sido modificados. Vuelve a calcular"
-
-                    else:
-                        currency_from_id = int(form.currency_from.data)  
-                        amount_from = float(form.amount_from.data)
+                        last_calc = session.get('last_calculation')
                         
-                        if amount_from > owned_currencies[currency_from_id]:
-                            balance = owned_currencies[currency_from_id]
-                            symbol = id_to_symbol[currency_from_id]
-                            message = f"Error: tan solo tienes {balance} de {symbol}"
+                        if not last_calc:
+                            message = "Error: Debes calcular antes de guardar"
+
+                        elif (last_calc['currency_from'] != form.currency_from.data or
+                            last_calc['currency_to'] != form.currency_to.data or
+                            last_calc['amount_from'] != float(form.amount_from.data)):
+
+                            message = "Error: Los datos han sido modificados. Vuelve a calcular"
+
                         else:
-                        
-                            now = datetime.now()
+                            currency_from_id = int(form.currency_from.data)  
+                            amount_from = float(form.amount_from.data)
                             
-                            data_form = (
-                                now.strftime('%Y-%m-%d'),           
-                                now.strftime('%H:%M:%S'),           
-                                last_calc['currency_from'],         
-                                last_calc['amount_from'],           
-                                last_calc['currency_to'],           
-                                last_calc['amount_to']              
-                            )
+                            if amount_from > owned_currencies[currency_from_id]:
+                                balance = owned_currencies[currency_from_id]
+                                symbol = id_to_symbol[currency_from_id]
+                                message = f"Error: tan solo tienes {balance} de {symbol}"
+                            else:
                             
-                            try:
-                                user_transactions.insert(data_form)
-                                message = "Transacción guardada exitosamente"
-                            except TransactionError as e:
-                                message = f"Error al guardar: {str(e)}"
-                            
-                            # Remove session after saving
-                            session.pop('last_calculation', None)
+                                now = datetime.now()
+                                
+                                data_form = (
+                                    now.strftime('%Y-%m-%d'),           
+                                    now.strftime('%H:%M:%S'),           
+                                    last_calc['currency_from'],         
+                                    last_calc['amount_from'],           
+                                    last_calc['currency_to'],           
+                                    last_calc['amount_to']              
+                                )
+                                
+                                try:
+                                    user_transactions.insert(data_form)
+                                    message = "Transacción guardada exitosamente"
+                                except TransactionError as e:
+                                    message = f"Error al guardar: {str(e)}"
+                                
+                                # Remove session after saving
+                                session.pop('last_calculation', None)
     except TransactionError as e:
         message = f"Error en la base de datos: {e}"
 
