@@ -101,10 +101,10 @@ La aplicación estará disponible en: `http://127.0.0.1:5002` por compatibilidad
    - Selecciona la moneda de origen y destino
    - Ingresa la cantidad
    - Haz clic en "Calcular" para ver la conversión
-   - Si estás conforme, haz clic en "Guardar" para registrar la transacción^*^
+   - Si estás conforme, haz clic en "Guardar" para registrar la transacción*
 3. Consulta "Status" para ver el estado actual de tu inversión
 
-**^*^Nota:** Si deseas realizar un cambio debes volver a darle a calcular antes de guardar la transacción.
+***Nota:** Si deseas realizar un cambio debes volver a darle a calcular antes de guardar la transacción.
 
 ## 📝 Notas del Desarrollador
 
