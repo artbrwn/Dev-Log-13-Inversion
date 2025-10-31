@@ -120,6 +120,8 @@ def purchase():
                                 session.pop('last_calculation', None)
     except TransactionError as e:
         message = f"Error en la base de datos: {e}"
+    except KeyError:
+        message = f"Error en la configuración de la app"
 
     return render_template("purchase.html", 
                          form=form, 
