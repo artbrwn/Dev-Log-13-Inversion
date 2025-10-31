@@ -61,7 +61,8 @@ CURRENCIES = {
     "DOGE": 74
 }
 ```
-**IMPORTANTE:** Es importante mantener el diccionario CURRENCIES con los valores que se aparecen en el archivo de ejemplo, o con unos valores donde el símbolo de la moneda coincida con el índice asociado en CoinMarketCap. 
+**IMPORTANTE:** Es importante mantener el diccionario CURRENCIES con los valores que se aparecen en el archivo de ejemplo, o con unos valores donde el símbolo de la moneda coincida con el índice asociado en CoinMarketCap. En caso de no introducirlo o de introducirlo vacío el programa se ejecutará con los valores por defecto.
+
 El índice de las criptomonedas se puede obtener en el siguiente endpoint:
 https://pro-api.coinmarketcap.com/v1/cryptocurrency/map
 
