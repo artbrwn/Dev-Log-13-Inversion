@@ -5,3 +5,5 @@ venv/
 config.py
 sandbox.py
 trading.sqlite3
+.pytest_cache/
+.idea/
