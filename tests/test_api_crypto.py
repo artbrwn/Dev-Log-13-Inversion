@@ -2,7 +2,7 @@ import inversion_app.models.api_crypto as api_cripto
 import pytest
 import unittest.mock as mock
 from inversion_app.models.api_crypto import ApiCrypto
-from requests import RequestException
+from requests import RequestException, HTTPError
 
 
 @mock.patch("inversion_app.models.api_crypto.requests.get")
@@ -38,10 +38,25 @@ def test_get_good_conversion_price(mock_get):
     assert conversion_price == data["data"]["quote"]["2790"]["price"]
 
 @mock.patch("inversion_app.models.api_crypto.requests.get")
-def test_capture_exception(mock_get):
-    mock_get.side_effect = RequestException("API error")
+def test_capture_http_exception(mock_get):
+    mock_response = mock.Mock()
+    mock_response.raise_for_status.side_effect = HTTPError()
+    mock_get.return_value = mock_response
+
+    api_control = ApiCrypto()
+    with pytest.raises(api_cripto.ApiCryptoError) as e:
+        api_control.get_conversion_price(1, -1, -2790)
+
+    assert "API HTTP error" in str(e)
+
+@mock.patch("inversion_app.models.api_crypto.requests.get")
+def test_capture_requests_exception(mock_get):
+    mock_response = mock.Mock()
+    mock_response.raise_for_status.side_effect = RequestException()
+    mock_get.return_value = mock_response
+
     api_control = ApiCrypto()
     with pytest.raises(api_cripto.ApiCryptoError) as e:
         api_control.get_conversion_price(1, 1, 2790)
 
-    assert "API request/conversion failed" in str(e)
+    assert "Network error" in str(e) 
