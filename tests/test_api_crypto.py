@@ -45,7 +45,7 @@ def test_capture_http_exception(mock_get):
 
     api_control = ApiCrypto()
     with pytest.raises(api_cripto.ApiCryptoError) as e:
-        api_control.get_conversion_price(1, -1, -2790)
+        api_control.get_conversion_price(1, "fake currency", "invalid currency")
 
     assert "API HTTP error" in str(e)
 
